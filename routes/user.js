@@ -1,0 +1,59 @@
+const express = require('express');
+const {
+  getCurrentUser,
+  updateUser,
+  deleteUser,
+  changePassword,
+  getAllUsers,
+  getAllUnverifiedUsers,
+  deleteUnverifiedUser,
+} = require('../controllers/userController');
+const {
+  verifyTokenAndAuthorization,
+  verifyToken,
+  verifyTokenAndAdmin,
+} = require('../middlewares/verifytoken');
+const router = express.Router();
+
+// @desc Get current user
+// @access Private
+// @route GET /api/user/cureent-user
+router.get('/current-user', verifyToken, getCurrentUser);
+
+// @desc get all users
+// @access Private
+// @route GET /api/user/get-all-users
+router.get('/get-all-users', verifyTokenAndAdmin, getAllUsers);
+// @desc get all unverified users
+// @access Private
+// @route GET /api/user/get-all-users
+router.get(
+  '/get-all-unverified-users',
+  verifyTokenAndAdmin,
+  getAllUnverifiedUsers
+);
+// @update user
+// @access Private
+// @route PUT /api/user/update-user
+router.put('/update-user/:id', verifyTokenAndAuthorization, updateUser);
+// @desc delete user
+// // @access Private
+// // @route DELETE /api/user/delete-user
+
+router.delete('/delete-user/:id', verifyTokenAndAuthorization, deleteUser);
+
+// @desc delete unverified user
+// @access Private
+// @route DELETE /api/user/delete-unverified-user
+router.delete(
+  '/delete-unverified-user',
+  verifyTokenAndAdmin,
+  deleteUnverifiedUser
+);
+
+// @desc change password
+// @access Private
+// @route PUT /api/user/change-password
+router.put('/change-password', verifyToken, changePassword);
+
+module.exports = router;
