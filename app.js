@@ -7,21 +7,18 @@ const logger = require('./middlewares/logger');
 
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const { apiLimiter } = require('./middlewares/rateLimiter');
-const createDefaultAdmin = require('./config/createDefaultAdmin');
 require('dotenv').config();
 const app = express();
-connectToDB().then(() => {
-  createDefaultAdmin();
-});
+
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
+connectToDB();
 
 app.use(logger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN,
-  })
-);
+app.use(cors());
 app.use(helmet());
 app.use(apiLimiter);
 app.use('/api/auth', require('./routes/auth'));
@@ -36,5 +33,3 @@ app.use(errorHandler);
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
-
-// Connect to Database
