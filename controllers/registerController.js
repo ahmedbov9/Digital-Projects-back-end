@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
 const { totp } = require('otplib');
-const { User, validateRegister } = require('../models/User');
+const { User } = require('../models/User');
 const {
   validateVerifiedUser,
   UnverifiedUser,
@@ -49,8 +49,9 @@ module.exports.registerStepOne = asyncHandler(async (req, res) => {
   // تحديد وقت انتهاء صلاحية OTP (10 دقائق)
   const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  // تشفير OTP باستخدام مكتبة bcrypt
-  const hashedOTP = await bcrypt.hash(otp, 10);
+  const salt = await bcrypt.genSalt(10);
+  // تشفير OTP
+  const hashedOTP = await bcrypt.hash(otp, salt);
 
   // إنشاء سجل جديد في قاعدة بيانات المستخدمين غير الموثقين
   await UnverifiedUser.create({
@@ -87,31 +88,37 @@ module.exports.registerStepOne = asyncHandler(async (req, res) => {
 });
 
 // الخطوة الثانية: التحقق من OTP وتسجيل المستخدم
-// api/auth/register/verify
+// api/auth/register/verify-and-register
 // @desc Verify OTP and register user
 // @access Public
 
 module.exports.verifyOtpAndRegister = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
-
+  console.log(otp);
   // البحث عن المستخدم غير الموثق باستخدام البريد الإلكتروني
+
   const record = await UnverifiedUser.findOne({ email });
   if (!record) {
     return res.status(400).json({
-      message: 'رمز التحقق غير صالح', // إرسال رسالة خطأ إذا كان البريد الإلكتروني أو OTP غير صحيح
+      message: 'رمز التحقق منتهي الصلاحية او غير صالح', // إرسال رسالة خطأ إذا كان البريد الإلكتروني أو OTP غير صحيح
     });
   }
+
   const hashedOTP = record.otp;
-  const isOtpMatch = await bcrypt.compare(otp, hashedOTP); // مقارنة OTP المدخل مع OTP المخزن
 
-  // التحقق من صحة OTP وصلاحية الوقت
-  if (!isOtpMatch || record.otpExpiresAt < new Date()) {
+  if (record.otpExpiresAt < new Date()) {
     return res.status(400).json({
-      message: 'رمز التحقق منتهي الصلاحية او غير صالح', // إرسال رسالة خطأ إذا كان OTP غير صحيح أو منتهي الصلاحية
+      message: 'رمز التحقق منتهي الصلاحية او غير صالح',
     });
   }
 
-  // إنشاء مستخدم جديد في قاعدة بيانات المستخدمين
+  const isOtpMatch = await bcrypt.compare(otp, hashedOTP);
+  if (!isOtpMatch) {
+    return res.status(400).json({
+      message: 'رمز التحقق منتهي الصلاحية او غير صالح',
+    });
+  }
+
   const newUser = new User({
     firstName: record.firstName,
     lastName: record.lastName,
@@ -148,12 +155,11 @@ module.exports.resendOtp = asyncHandler(async (req, res) => {
   }
 
   const otp = await totp.generate(process.env.OTP_SECRET);
+  const hashedOTP = await bcrypt.hash(otp, 10);
 
-  record.otp = otp;
+  record.otp = hashedOTP;
   record.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
   await record.save();
-
-  const hashedOTP = await bcrypt.hash(otp, 10);
 
   await UnverifiedUser.updateOne(
     { email },
