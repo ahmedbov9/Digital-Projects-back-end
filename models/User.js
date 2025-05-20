@@ -77,7 +77,19 @@ function validateUpdateUser(data) {
   const schema = Joi.object({
     firstName: Joi.string().min(2).max(50).optional(),
     lastName: Joi.string().min(2).max(50).optional(),
+    password: Joi.string().optional(),
     mobileNumber: Joi.string().min(10).max(15).optional(),
+    email: Joi.string().email().optional(),
+  });
+  return schema.validate(data);
+}
+function validateUpdateUserFromAdmin(data) {
+  const schema = Joi.object({
+    firstName: Joi.string().min(2).max(50).optional(),
+    lastName: Joi.string().min(2).max(50).optional(),
+    mobileNumber: Joi.string().min(10).max(15).optional(),
+    isAdmin: Joi.boolean().optional(),
+    email: Joi.string().email().optional(),
   });
   return schema.validate(data);
 }
@@ -131,4 +143,5 @@ module.exports = {
   validateChangePassword,
   forgetPasswordChangePassword,
   validateResetPassword,
+  validateUpdateUserFromAdmin,
 };

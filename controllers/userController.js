@@ -1,6 +1,11 @@
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
-const { User, validateUpdateUser } = require('../models/User');
+const {
+  User,
+  validateUpdateUser,
+  validateChangePassword,
+  validateUpdateUserFromAdmin,
+} = require('../models/User');
 const { Order } = require('../models/Order');
 const { UnverifiedUser } = require('../models/UnverifiedUser');
 const totp = require('otplib').totp;
@@ -22,11 +27,6 @@ module.exports.getCurrentUser = asyncHandler(async (req, res) => {
 // @access Private
 // @route PUT /api/user/update-user
 module.exports.updateUser = asyncHandler(async (req, res) => {
-  const { error } = validateUpdateUser(req.body);
-  if (error) {
-    return res.status(400).json(error.details[0].message);
-  }
-
   // get user id from token
   const userId = req.user.id;
   // find user by id
@@ -38,18 +38,21 @@ module.exports.updateUser = asyncHandler(async (req, res) => {
   // check is password Match
   const isMatch = await bcrypt.compare(req.body.password, user.password);
   if (!isMatch) {
-    console.log('body password : ' + req.body.password);
-    console.log('database password : ' + user.password);
     return res.status(400).json({ message: 'كلمة المرور غير صحيحة' });
   }
 
   // update user
+  const { error } = validateUpdateUser(req.body);
+  if (error) {
+    return res.status(400).json(error.details[0].message);
+  }
+
   const updatedUser = await User.findByIdAndUpdate(
     userId,
     {
       $set: {
-        name: req.body.name,
-        email: req.body.email,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         phone: req.body.phone,
       },
     },
@@ -58,7 +61,7 @@ module.exports.updateUser = asyncHandler(async (req, res) => {
   if (!updatedUser) {
     return res.status(404).json({ message: 'لم يتم العثور على المستحدم' });
   }
-  res.status(201).json(updatedUser);
+  res.status(201).json({ message: 'تم تحديث المستخدم بنجاح' });
 });
 // @desc delete user
 // @access Private
@@ -212,4 +215,50 @@ module.exports.deleteUnverifiedUser = asyncHandler(async (req, res) => {
   // delete user
   await UnverifiedUser.findByIdAndDelete(userId);
   res.status(200).json({ message: 'تم حذف المستخدم بنجاح' });
+});
+// @desc find user by id
+// @access Private
+// @route GET /api/user/get-user/:id
+module.exports.getUserById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  console.log('id : ' + id);
+  // find user by id
+  const user = await User.findById(id).select('-password');
+  if (!user) {
+    return res.status(404).json({ message: 'لم يتم العثور على المستحدم' });
+  }
+  res.status(200).json(user);
+});
+// @desc update user form admin
+// @access Private
+// @route PUT /api/user/update-user-dashboard/:id
+module.exports.updateUserFromDashboard = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  // find user by id
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({ message: 'لم يتم العثور على المستحدم' });
+  }
+
+  // update user
+  const { error } = validateUpdateUserFromAdmin(req.body);
+  if (error) {
+    return res.status(400).json(error.details[0].message);
+  }
+  const updatedUser = await User.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        phone: req.body.phone,
+        isAdmin: req.body.isAdmin,
+      },
+    },
+    { new: true }
+  );
+  if (!updatedUser) {
+    return res.status(404).json({ message: 'لم يتم العثور على المستحدم' });
+  }
+  res.status(201).json({ message: 'تم تحديث المستخدم بنجاح' });
 });

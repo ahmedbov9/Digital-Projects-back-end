@@ -17,7 +17,7 @@ module.exports.forgetPassword = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(400).json({ message: 'User not found' });
+    return res.status(400).json({ message: 'لم يتم العثور على المستحدم' });
   }
   const secret = process.env.JWT_SECRET + user.password;
   const token = jwt.sign({ email: user.email, id: user._id }, secret, {

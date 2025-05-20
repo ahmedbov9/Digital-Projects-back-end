@@ -7,6 +7,8 @@ const {
   getAllUsers,
   getAllUnverifiedUsers,
   deleteUnverifiedUser,
+  getUserById,
+  updateUserFromDashboard,
 } = require('../controllers/userController');
 const {
   verifyTokenAndAuthorization,
@@ -24,6 +26,21 @@ router.get('/current-user', verifyToken, getCurrentUser);
 // @access Private
 // @route GET /api/user/get-all-users
 router.get('/get-all-users', verifyTokenAndAdmin, getAllUsers);
+
+// @desc get user by id
+// @access Private
+// @route GET /api/user/get-user
+router.get('/get-user/:id', verifyTokenAndAuthorization, getUserById);
+
+// @desc update user form admin
+// @access Private
+// @route PUT /api/user/update-user-dashboard/:id
+router.put(
+  '/update-user-dashboard/:id',
+  verifyTokenAndAdmin,
+  updateUserFromDashboard
+);
+
 // @desc get all unverified users
 // @access Private
 // @route GET /api/user/get-all-users
