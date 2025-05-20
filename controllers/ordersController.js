@@ -79,7 +79,6 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
   });
   const result = await order.save();
 
-  console.log('hello3 ');
   // ارسال المرفق الى ايميل الشركة
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -94,19 +93,57 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
     to: process.env.PERSONAL_EMAIL,
     subject: 'طلب جديد',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">لديك طلب جديد من المستخدم:</h2>
-        <p><strong>البريد الإلكتروني:</strong> ${req.body.email}</p>
-        <p><strong>الاسم:</strong> ${req.body.firstName} ${req.body.lastName}</p>
-        <p><strong>رقم الطلب:</strong> ${orderNumber}</p>
-        <p><strong>رقم الجوال :</strong> ${req.body.mobileNumber}</p>
-        <p><strong>نوع الخدمة :</strong> ${req.body.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p><strong>تاريخ الانشاء:</strong> ${result.createdAt}</p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${req.body.serviceDetails}
-        </p>
-      </div>
+    <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+            <td style="background: linear-gradient(90deg, #007BFF 0%, #00C6FF 100%); padding: 32px 24px 16px 24px;">
+                <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">طلب جديد من المستخدم</h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 28px 24px 24px 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                        <td style="padding: 8px 0;">${req.body.email}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                        <td style="padding: 8px 0;">${req.body.firstName} ${req.body.lastName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                        <td style="padding: 8px 0;">${orderNumber}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                        <td style="padding: 8px 0;">${req.body.mobileNumber}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                        <td style="padding: 8px 0;">${req.body.serviceType}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>تاريخ الإنشاء:</strong></td>
+                        <td style="padding: 8px 0;">${result.createdAt}</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 24px;">
+                    <strong style="display:block; margin-bottom:8px; color:#007BFF;">تفاصيل الخدمة:</strong>
+                    <div
+                        style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                        ${req.body.serviceDetails}
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+                مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز
+                    المشاريع الرقمية</a>
+            </td>
+        </tr>
+    </table>
     `,
     attachments: req.file
       ? [
@@ -126,6 +163,79 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json(result);
+
+  // ارسال المرفق الى ايميل المستخدم
+  const userTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+  const userMailOptions = {
+    from: process.env.EMAIL,
+    to: req.body.email,
+    subject: 'طلبك قيد المعالجة',
+    html: `
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #007BFF 0%, #00C6FF 100%); padding: 32px 24px 16px 24px;">
+            <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">طلبك قيد المعالجة</h2>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${req.body.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ الإنشاء:</strong></td>
+                <td style="padding: 8px 0;">${result.createdAt}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${req.body.mobileNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${req.body.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${req.body.firstName} ${req.body.lastName}</td>
+              </tr>
+            </table>
+            <div style="margin-top: 24px;">
+              <strong style="display:block; margin-bottom:8px; color:#007BFF;">تفاصيل الخدمة:</strong>
+              <div
+                style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                ${req.body.serviceDetails}
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
+    `,
+  };
+  userTransporter.sendMail(userMailOptions, (error, info) => {
+    if (error) {
+      console.log('خطأ أثناء إرسال البريد الإلكتروني:', error);
+    } else {
+      console.log('تم إرسال البريد الإلكتروني:', info.response);
+    }
+  });
 });
 
 // @desc Get all orders for user
@@ -236,21 +346,70 @@ module.exports.sendPriceOffer = asyncHandler(async (req, res) => {
     to: order.userId.email,
     subject: 'عرض سعر جديد',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">لديك عرض سعر جديد</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
-        <p><strong>السعر المقترح:</strong> ${req.body.price} ريال</p>
-        <p><strong>تاريخ التسليم:</strong> ${req.body.serviceDeleveryDate}</p>
-        <p><strong>تاريخ ارسال عرض السعر:</strong> ${order.priceOffer.sendAt}</p>
-        <p><strong>رقم الجوال :</strong> ${order.userId.mobileNumber}</p>
-        <p><strong>البريد الالكتروني :</strong> ${order.userId.email}</p>
-        <p><strong>الاسم :</strong> ${order.userId.firstName} ${order.userId.lastName}</p>
-         </div>
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #007BFF 0%, #00C6FF 100%); padding: 32px 24px 16px 24px;">
+            <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">لديك عرض سعر جديد</h2>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${order.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>السعر المقترح:</strong></td>
+                <td style="padding: 8px 0;">${req.body.price} ريال</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ التسليم:</strong></td>
+                <td style="padding: 8px 0;">${req.body.serviceDeleveryDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ إرسال عرض السعر:</strong></td>
+                <td style="padding: 8px 0;">${
+                  order.priceOffer.sendAt
+                    ? new Date(order.priceOffer.sendAt).toLocaleString('ar-EG')
+                    : ''
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.firstName} ${
+      order.userId.lastName
+    }</td>
+              </tr>
+            </table>
+            <div style="margin-top: 24px;">
+              <strong style="display:block; margin-bottom:8px; color:#007BFF;">تفاصيل الخدمة:</strong>
+              <div
+                style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                ${order.serviceDetails}
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
     `,
   };
   transporter.sendMail(mailOptions, (error, info) => {
@@ -309,20 +468,69 @@ module.exports.rejectOrder = asyncHandler(async (req, res) => {
     to: order.userId.email,
     subject: 'تم رفض طلبك',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">تم رفض طلبك</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
-        <p><strong>سبب الرفض:</strong> ${req.body.rejectReason}</p>
-        <p><strong>تاريخ الرفض:</strong> ${order.priceOffer.responseAt}</p>
-        <p><strong>رقم الجوال :</strong> ${order.userId.mobileNumber}</p>
-        <p><strong>البريد الالكتروني :</strong> ${order.userId.email}</p>
-        <p><strong>الاسم :</strong> ${order.userId.firstName} ${order.userId.lastName}</p>
-          </div>
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #dc3545 0%, #ff7675 100%); padding: 32px 24px 16px 24px;">
+            <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">تم رفض طلبك</h2>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${order.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تفاصيل الخدمة:</strong></td>
+                <td style="padding: 8px 0;">
+                  <div style="background: #f4f8fb; padding: 12px 16px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                    ${order.serviceDetails}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>سبب الرفض:</strong></td>
+                <td style="padding: 8px 0; color:#dc3545;">${
+                  req.body.rejectReason
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ الرفض:</strong></td>
+                <td style="padding: 8px 0;">${
+                  order.priceOffer.sendAt
+                    ? new Date(order.priceOffer.sendAt).toLocaleString('ar-EG')
+                    : ''
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.firstName} ${
+      order.userId.lastName
+    }</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#007BFF; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
     `,
   };
   transporter.sendMail(mailOptions, (error, info) => {
@@ -374,23 +582,147 @@ module.exports.acceptPriceOffer = asyncHandler(async (req, res) => {
     to: order.userId.email,
     subject: 'تم قبول عرض السعر',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">تم قبول عرض السعر بنجاح</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
-        <p><strong>سبب الرفض</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.priceOffer.rejectReason}
-        </p>
-        
-      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #28a745 0%, #00c853 100%); padding: 32px 24px 16px 24px;">
+            <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">تم قبول عرض السعر بنجاح</h2>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${order.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ القبول:</strong></td>
+                <td style="padding: 8px 0;">${
+                  order.priceOffer.responseAt
+                    ? new Date(order.priceOffer.responseAt).toLocaleString(
+                        'ar-EG'
+                      )
+                    : ''
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.firstName} ${
+      order.userId.lastName
+    }</td>
+              </tr>
+            </table>
+            <div style="margin-top: 24px;">
+              <strong style="display:block; margin-bottom:8px; color:#28a745;">تفاصيل الخدمة:</strong>
+              <div
+                style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                ${order.serviceDetails}
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#007BFF; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#28a745; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
     `,
   };
   transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('خطأ أثناء إرسال البريد الإلكتروني:', error);
+    } else {
+      console.log('تم إرسال البريد الإلكتروني:', info.response);
+    }
+  });
+  // ارسال المرفق الى ايميل الشركة
+  const companyTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+  const companyMailOptions = {
+    from: process.env.EMAIL,
+    to: process.env.PERSONAL_EMAIL,
+    subject: 'تم قبول عرض السعر',
+    html: `
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #28a745 0%, #00c853 100%); padding: 32px 24px 16px 24px;">
+            <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">تم قبول عرض السعر</h2>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${order.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ القبول:</strong></td>
+                <td style="padding: 8px 0;">${
+                  order.priceOffer.responseAt
+                    ? new Date(order.priceOffer.responseAt).toLocaleString(
+                        'ar-EG'
+                      )
+                    : ''
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.firstName} ${
+      order.userId.lastName
+    }</td>
+              </tr>
+            </table>
+            <div style="margin-top: 24px;">
+              <strong style="display:block; margin-bottom:8px; color:#28a745;">تفاصيل الخدمة:</strong>
+              <div
+                style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                ${order.serviceDetails}
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#007BFF; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#28a745; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
+    `,
+  };
+  companyTransporter.sendMail(companyMailOptions, (error, info) => {
     if (error) {
       console.log('خطأ أثناء إرسال البريد الإلكتروني:', error);
     } else {
@@ -436,15 +768,73 @@ module.exports.rejectPriceOffer = asyncHandler(async (req, res) => {
     to: order.userId.email,
     subject: 'تم رفض عرض السعر',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">تم رفض عرض السعر</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
-      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #dc3545 0%, #ff7675 100%); padding: 32px 24px 16px 24px;">
+            <h2 style="color: #fff; margin:0; font-size: 1.8em; letter-spacing:1px;">تم رفض عرض السعر</h2>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${order.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تفاصيل الخدمة:</strong></td>
+                <td style="padding: 8px 0;">
+                  <div style="background: #f4f8fb; padding: 12px 16px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                    ${order.serviceDetails}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>سبب الرفض:</strong></td>
+                <td style="padding: 8px 0; color:#dc3545;">${
+                  order.priceOffer.rejectReason || ''
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>تاريخ الرفض:</strong></td>
+                <td style="padding: 8px 0;">
+                  ${
+                    order.priceOffer.responseAt
+                      ? new Date(order.priceOffer.responseAt).toLocaleString(
+                          'ar-EG'
+                        )
+                      : ''
+                  }
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.firstName} ${
+      order.userId.lastName
+    }</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f7fafd; text-align:center; color:#fff; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
     `,
   };
   transporter.sendMail(mailOptions, (error, info) => {
@@ -497,16 +887,81 @@ module.exports.updatePaymentStatus = asyncHandler(async (req, res) => {
   const mailOptions = {
     from: process.env.EMAIL,
     to: order.userId.email,
-    subject: 'تم دفع الطلب',
+    subject: 'فاتورة دفع الطلب',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">تم دفع الطلب بنجاح</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7fafd; padding: 0; margin: 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:40px auto; background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+          <tr>
+            <td style="background: linear-gradient(90deg, #007BFF 0%, #00C6FF 100%); padding: 32px 24px 16px 24px; text-align:center;">
+              <h2 style="color: #fff; margin:0; font-size: 2em; letter-spacing:1px;">فاتورة دفع الطلب</h2>
+              <p style="color:#e3eaf1; margin:8px 0 0 0; font-size:1.1em;">شكراً لاختيارك مركز المشاريع الرقمية</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 28px 24px 24px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+                <tr>
+                  <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                  <td style="padding: 8px 0;">${order.orderNumber}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                  <td style="padding: 8px 0;">${order.serviceType}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>تاريخ الدفع:</strong></td>
+                  <td style="padding: 8px 0;">${
+                    order.servicePaymentDate
+                      ? new Date(order.servicePaymentDate).toLocaleString(
+                          'ar-EG'
+                        )
+                      : ''
+                  }</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                  <td style="padding: 8px 0;">${order.userId.firstName} ${
+      order.userId.lastName
+    }</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                  <td style="padding: 8px 0;">${order.userId.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                  <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>المبلغ المدفوع:</strong></td>
+                  <td style="padding: 8px 0; color:#28a745; font-weight:bold;">
+                    ${
+                      order.priceOffer && order.priceOffer.price
+                        ? order.priceOffer.price + ' ريال'
+                        : '--'
+                    }
+                  </td>
+                </tr>
+              </table>
+              <div style="margin-top: 24px;">
+                <strong style="display:block; margin-bottom:8px; color:#007BFF;">تفاصيل الخدمة:</strong>
+                <div style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                  ${order.serviceDetails}
+                </div>
+              </div>
+              <div style="margin-top:32px; text-align:center;">
+                <span style="display:inline-block; background:#28a745; color:#fff; padding:10px 32px; border-radius:6px; font-size:1.2em; letter-spacing:1px;">
+                  تم الدفع بنجاح
+                </span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+              مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+            </td>
+          </tr>
+        </table>
       </div>
     `,
   };
@@ -560,14 +1015,57 @@ module.exports.updateOrderToCompleted = asyncHandler(async (req, res) => {
     to: order.userId.email,
     subject: 'تم الانتهاء من الطلب',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">تم الانتهاء من الطلب بنجاح</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7fafd; padding: 0; margin: 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:40px auto; background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+          <tr>
+            <td style="background: linear-gradient(90deg, #007BFF 0%, #00C6FF 100%); padding: 32px 24px 16px 24px; text-align:center;">
+              <h2 style="color: #fff; margin:0; font-size: 2em; letter-spacing:1px;">تم الانتهاء من الطلب بنجاح</h2>
+              <p style="color:#e3eaf1; margin:8px 0 0 0; font-size:1.1em;">شكراً لاختيارك مركز المشاريع الرقمية</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 28px 24px 24px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+                <tr>
+                  <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                  <td style="padding: 8px 0;">${order.orderNumber}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                  <td style="padding: 8px 0;">${order.serviceType}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                  <td style="padding: 8px 0;">${order.userId.firstName} ${order.userId.lastName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                  <td style="padding: 8px 0;">${order.userId.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                  <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+                </tr>
+              </table>
+              <div style="margin-top: 24px;">
+                <strong style="display:block; margin-bottom:8px; color:#007BFF;">تفاصيل الخدمة:</strong>
+                <div style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                  ${order.serviceDetails}
+                </div>
+              </div>
+              <div style="margin-top:32px; text-align:center;">
+                <span style="display:inline-block; background:#28a745; color:#fff; padding:10px 32px; border-radius:6px; font-size:1.2em; letter-spacing:1px;">
+                  تم الانتهاء من الطلب بنجاح
+                </span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+              مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+            </td>
+          </tr>
+        </table>
       </div>
     `,
   };
@@ -584,15 +1082,57 @@ module.exports.updateOrderToCompleted = asyncHandler(async (req, res) => {
     to: process.env.PERSONAL_EMAIL,
     subject: 'تم الانتهاء من الطلب',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #007BFF;">تم الانتهاء من الطلب بنجاح</h2>
-        <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        <p><strong>نوع الخدمة:</strong> ${order.serviceType}</p>
-        <p><strong>تفاصيل الخدمة:</strong></p>
-        <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          ${order.serviceDetails}
-        </p>
-      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" dir="rtl"
+        style="font-family: 'Segoe UI', Arial, sans-serif; background: #fff; max-width:600px; margin:40px auto; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;">
+        <tr>
+          <td style="background: linear-gradient(90deg, #007BFF 0%, #00C6FF 100%); padding: 32px 24px 16px 24px; text-align:center;">
+            <h2 style="color: #fff; margin:0; font-size: 2em; letter-spacing:1px;">تم الانتهاء من الطلب بنجاح</h2>
+            <p style="color:#e3eaf1; margin:8px 0 0 0; font-size:1.1em;">شكراً لاختياركم مركز المشاريع الرقمية</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px 24px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:1.08em; color:#222;">
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الطلب:</strong></td>
+                <td style="padding: 8px 0;">${order.orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>نوع الخدمة:</strong></td>
+                <td style="padding: 8px 0;">${order.serviceType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>الاسم:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.firstName} ${order.userId.lastName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>البريد الإلكتروني:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>رقم الجوال:</strong></td>
+                <td style="padding: 8px 0;">${order.userId.mobileNumber}</td>
+              </tr>
+            </table>
+            <div style="margin-top: 24px;">
+              <strong style="display:block; margin-bottom:8px; color:#007BFF;">تفاصيل الخدمة:</strong>
+              <div style="background: #f4f8fb; padding: 16px 18px; border-radius: 7px; border:1px solid #e3eaf1; color:#333; font-size:1em;">
+                ${order.serviceDetails}
+              </div>
+            </div>
+            <div style="margin-top:32px; text-align:center;">
+              <span style="display:inline-block; background:#28a745; color:#fff; padding:10px 32px; border-radius:6px; font-size:1.2em; letter-spacing:1px;">
+                تم الانتهاء من الطلب بنجاح
+              </span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+            مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </td>
+        </tr>
+      </table>
     `,
   };
   transporter.sendMail(mailOptionsToCompany, (error, info) => {

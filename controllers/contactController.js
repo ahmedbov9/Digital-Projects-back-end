@@ -27,12 +27,22 @@ module.exports.sendEmailMessage = asyncHandler(async (req, res) => {
   const mailOptions = {
     from: `${process.env.EMAIL}`, // sender address
     to: process.env.PERSONAL_EMAIL, // list of receivers
-    subject: 'رسالة جديدة', // Subject line
-    text: `
-    الاسم: ${name}
-    البريد الإلكتروني: ${email}
-    الرسالة: ${message}
-    `, // plain text body
+    subject: 'رسالة جديدة من نموذج التواصل', // Subject line
+    html: `
+      <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
+        <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 24px;">
+          <h2 style="color: #2d3748; margin-bottom: 16px;">📩 رسالة جديدة من نموذج التواصل</h2>
+          <p><strong>الاسم:</strong> ${name}</p>
+          <p><strong>البريد الإلكتروني:</strong> ${email}</p>
+          <div style="margin-top: 16px;">
+            <strong>الرسالة:</strong>
+            <div style="background: #f1f1f1; border-radius: 4px; padding: 12px; margin-top: 8px; color: #333;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
   };
 
   // Send mail with defined transport object

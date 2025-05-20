@@ -33,10 +33,25 @@ module.exports.forgetPassword = asyncHandler(async (req, res) => {
     },
   });
   const mailOptions = {
-    from: process.env.EMAIL,
+    from: `"Programming Services" <${process.env.EMAIL}>`,
     to: email,
-    subject: 'Reset Password',
-    text: `Click on the link to reset your password: ${link}`,
+    subject: 'إعادة تعيين كلمة المرور',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; border: 1px solid #eee; padding: 24px; border-radius: 8px;">
+        <h2 style="color: #2d7ff9;">إعادة تعيين كلمة المرور</h2>
+        <p>مرحبًا،</p>
+        <p>لقد تلقينا طلبًا لإعادة تعيين كلمة المرور الخاصة بحسابك.</p>
+        <p>
+          لإعادة تعيين كلمة المرور، يرجى الضغط على الزر أدناه أو نسخ الرابط ولصقه في متصفحك:
+        </p>
+        <a href="${link}" style="display: inline-block; background: #2d7ff9; color: #fff; padding: 12px 24px; border-radius: 4px; text-decoration: none; margin: 16px 0;">إعادة تعيين كلمة المرور</a>
+        <p style="font-size: 13px; color: #888;">إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد.</p>
+        <hr style="margin: 24px 0;">
+            <p style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+                مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز
+                    المشاريع الرقمية</a>
+            </p>      </div>
+    `,
   };
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -88,10 +103,21 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL,
+    from: `"Programming Services" <${process.env.EMAIL}>`,
     to: user.email,
     subject: 'تأكيد تغيير كلمة المرور',
-    text: 'تم تغيير كلمة المرور الخاصة بك بنجاح.',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; border: 1px solid #eee; padding: 24px; border-radius: 8px;">
+        <h2 style="color: #2d7ff9;">تم تغيير كلمة المرور بنجاح</h2>
+        <p>مرحبًا ${user.name ? user.name : ''},</p>
+        <p>نود إعلامك بأنه تم تغيير كلمة المرور الخاصة بحسابك بنجاح.</p>
+        <p>إذا لم تقم أنت بهذا التغيير، يرجى التواصل معنا فورًا لحماية حسابك.</p>
+        <hr style="margin: 24px 0;">
+        <p style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0;">
+          مع تحيات فريق <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+        </p>
+      </div>
+    `,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
