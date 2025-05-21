@@ -78,7 +78,32 @@ module.exports.registerStepOne = asyncHandler(async (req, res) => {
     from: process.env.EMAIL,
     to: email,
     subject: 'رمز التحقق',
-    text: `رمز التحقق الخاص بك هو: ${otp}. سينتهي صلاحيته خلال 10 دقائق.`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f7f7f7; padding: 40px 0;">
+        <div style="max-width: 420px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px;">
+          <h2 style="color: #2d7ff9; text-align: center; margin-bottom: 24px;">رمز التحقق الخاص بك</h2>
+          <p style="font-size: 16px; color: #333; text-align: center;">
+            شكرًا لتسجيلك في خدمتنا! يرجى استخدام رمز التحقق التالي لإكمال عملية التسجيل:
+          </p>
+          <div style="text-align: center; margin: 32px 0;">
+            <span style="display: inline-block; background: #f1f6fd; color: #2d7ff9; font-size: 32px; letter-spacing: 8px; font-weight: bold; padding: 16px 32px; border-radius: 8px; border: 1px dashed #2d7ff9;">
+              ${otp}
+            </span>
+          </div>
+          <p style="font-size: 15px; color: #666; text-align: center;">
+            سينتهي صلاحية الرمز خلال <b>10 دقائق</b> من وقت الإرسال.
+          </p>
+          <hr style="margin: 32px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 13px; color: #aaa; text-align: center;">
+            إذا لم تقم بطلب هذا الرمز، يمكنك تجاهل هذا البريد الإلكتروني.
+          </p>
+          <div style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0; border-radius: 0 0 10px 10px; margin-top:24px;">
+            مع تحيات فريق 
+            <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </div>
+        </div>
+      </div>
+    `,
   });
 
   // إرسال استجابة بنجاح إرسال OTP
@@ -177,8 +202,33 @@ module.exports.resendOtp = asyncHandler(async (req, res) => {
   await transporter.sendMail({
     from: process.env.EMAIL,
     to: email,
-    subject: 'New OTP Verification',
-    text: `Your new OTP is ${otp}. It will expire in 10 minutes.`,
+    subject: 'رمز التحقق',
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f7f7f7; padding: 40px 0;">
+        <div style="max-width: 420px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px;">
+          <h2 style="color: #2d7ff9; text-align: center; margin-bottom: 24px;">رمز التحقق الخاص بك</h2>
+          <p style="font-size: 16px; color: #333; text-align: center;">
+            شكرًا لتسجيلك في خدمتنا! يرجى استخدام رمز التحقق التالي لإكمال عملية التسجيل:
+          </p>
+          <div style="text-align: center; margin: 32px 0;">
+            <span style="display: inline-block; background: #f1f6fd; color: #2d7ff9; font-size: 32px; letter-spacing: 8px; font-weight: bold; padding: 16px 32px; border-radius: 8px; border: 1px dashed #2d7ff9;">
+              ${otp}
+            </span>
+          </div>
+          <p style="font-size: 15px; color: #666; text-align: center;">
+            سينتهي صلاحية الرمز خلال <b>10 دقائق</b> من وقت الإرسال.
+          </p>
+          <hr style="margin: 32px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 13px; color: #aaa; text-align: center;">
+            إذا لم تقم بطلب هذا الرمز، يمكنك تجاهل هذا البريد الإلكتروني.
+          </p>
+          <div style="background:#f7fafd; text-align:center; color:#888; font-size:0.95em; padding:16px 0 12px 0; border-radius: 0 0 10px 10px; margin-top:24px;">
+            مع تحيات فريق 
+            <a href="https://digitalprojectcenter.netlify.app/" style="color:#007BFF; text-decoration:none;">مركز المشاريع الرقمية</a>
+          </div>
+        </div>
+      </div>
+    `,
   });
 
   res.status(200).json({
