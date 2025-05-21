@@ -10,7 +10,6 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
   const { error } = validateOrder(req.body);
   if (error) {
     const customMessage = 'يرجى التحقق من البيانات المدخلة';
-
     return res.status(400).json({
       message: customMessage,
     });
@@ -32,15 +31,17 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // الحقق من طول الوصف
-  if (req.body.serviceDetails.length <= 200) {
+  if (req.body.serviceDetails.length <= 100) {
     return res.status(400).json({
-      message: 'يجب أن يكون الوصف أكبر من او يساوي 200 حرف',
+      message: 'يجب أن يكون الوصف أكبر من او يساوي 100 حرف  ',
     });
   }
-  // التحقق من وجود طلب قديم للمستخدم
+  if (req.body.serviceDetails.length >= 500) {
+    return res
+      .status(400)
+      .json({ message: 'يجب أن يكون الوصف أقل من او يساوي 500 حرف' });
+  }
 
-  // التحقق من صيغ المرفق
   const allowedMimeTypes = [
     'image/jpeg',
     'image/png',
@@ -49,9 +50,6 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
     'application/text',
   ];
 
-  // التحقق من وجود مرفق
-
-  // التحقق من حجم المرفق
   const maxSize = 100 * 1024 * 1024; // 100 ميجابايت
   if (req.file && req.file.size > maxSize) {
     return res.status(400).json({
