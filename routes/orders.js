@@ -13,6 +13,7 @@ const {
   rejectOrder,
   updatePaymentStatus,
   updateOrderToCompleted,
+  deleteOrder,
 } = require('../controllers/ordersController');
 const {
   verifyToken,
@@ -69,4 +70,8 @@ router.post(
   verifyTokenAndAdmin,
   updateOrderToCompleted
 );
+// @desc delete order by id
+// @access Private
+// @route DELETE /api/order/delete-order/:id
+router.delete('/delete-order/:id', verifyTokenAndAdmin, deleteOrder);
 module.exports = router;

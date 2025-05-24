@@ -9,6 +9,7 @@ const {
   deleteUnverifiedUser,
   getUserById,
   updateUserFromDashboard,
+  deleteUserFromDashboard,
 } = require('../controllers/userController');
 const {
   verifyTokenAndAuthorization,
@@ -72,5 +73,12 @@ router.delete(
 // @access Private
 // @route PUT /api/user/change-password
 router.put('/change-password', verifyToken, changePassword);
-
+// @desc delete user from dashboard
+// @access Private
+// @route DELETE /api/user/delete-user-dashboard/:id
+router.delete(
+  '/delete-user-dashboard/:id',
+  verifyTokenAndAdmin,
+  deleteUserFromDashboard
+);
 module.exports = router;

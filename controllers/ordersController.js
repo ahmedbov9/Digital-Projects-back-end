@@ -1141,3 +1141,14 @@ module.exports.updateOrderToCompleted = asyncHandler(async (req, res) => {
     }
   });
 });
+// @desc delete order
+// @access Private
+// @route DELETE /api/order/delete-order/:id
+module.exports.deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return res.status(404).json({ message: 'لا توجد طلبات مطابقة' });
+  }
+  await order.deleteOne();
+  res.status(200).json({ message: 'تم حذف الطلب بنجاح' });
+});

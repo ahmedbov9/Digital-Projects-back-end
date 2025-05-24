@@ -74,7 +74,6 @@ module.exports.deleteUser = asyncHandler(async (req, res) => {
 
   // get user email from requset body
   const { email } = req.body;
-  console.log('email : ' + email);
 
   // find user by id
 
@@ -261,4 +260,19 @@ module.exports.updateUserFromDashboard = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'لم يتم العثور على المستحدم' });
   }
   res.status(201).json({ message: 'تم تحديث المستخدم بنجاح' });
+});
+// delete user from dashboard
+// @desc delete user from dashboard
+// @access Private
+// @route DELETE /api/user/delete-user-dashboard/:id
+module.exports.deleteUserFromDashboard = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  // find user by id
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({ message: 'لم يتم العثور على المستحدم' });
+  }
+  // delete user
+  await User.findByIdAndDelete(id);
+  res.status(200).json({ message: 'تم حذف المستخدم بنجاح' });
 });
