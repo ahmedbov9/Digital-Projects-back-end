@@ -1,6 +1,10 @@
 const asyncHandler = require('express-async-handler');
 const nodemailer = require('nodemailer');
 
+// @desc contact form handler
+// @access Public
+// @route POST /api/contact/send-email
+
 module.exports.sendEmailMessage = asyncHandler(async (req, res) => {
   const { name, email, message } = req.body;
 

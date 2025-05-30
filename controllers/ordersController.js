@@ -36,7 +36,7 @@ module.exports.createOrder = asyncHandler(async (req, res) => {
       message: 'يجب أن يكون الوصف أكبر من او يساوي 100 حرف  ',
     });
   }
-  if (req.body.serviceDetails.length >= 500) {
+  if (req.body.serviceDetails.length > 500) {
     return res
       .status(400)
       .json({ message: 'يجب أن يكون الوصف أقل من او يساوي 500 حرف' });
